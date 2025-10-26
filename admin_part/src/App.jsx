@@ -67,6 +67,9 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/students/:id/details" element={<StudentDetails />} />
+         {/* addded by navjot on 26-10 9:06 */}
+        
+        <Route path="/students/:id/details" element={<StudentDetails />} />
       </Routes>
     </Router>
   );
