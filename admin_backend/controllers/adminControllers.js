@@ -899,70 +899,99 @@
 //     res.status(500).json({ message: "Server error" });
 //   }
 // };
-
-// // =======================
-// //  MESSAGE FUNCTIONALITY WITH TWILIO
-// // =======================
-// let messages = []; // in-memory storage
-
-// // Send message
+// /* ============================================================
+//    SEND MESSAGE VIA TWILIO
+// ============================================================ */
 // export const sendMessage = async (req, res) => {
 //   try {
 //     const { studentId, message } = req.body;
+
 //     if (!studentId || !message) {
-//       return res.status(400).json({ error: "Student ID and message are required" });
+//       return res
+//         .status(400)
+//         .json({ error: "Student ID and message are required" });
 //     }
 
-//     // Fetch student phone number
+//     // Fetch student
 //     const db = mongoose.connection.useDb("studentAcedmics");
 //     const collection = db.collection("studentdetails");
-//     const student = await collection.findOne({ _id: new mongoose.Types.ObjectId(studentId) });
+//     const student = await collection.findOne({
+//       _id: new mongoose.Types.ObjectId(studentId),
+//     });
+
 //     if (!student) return res.status(404).json({ error: "Student not found" });
 
-//     // ✅ Validate phone number format (E.164)
-//     if (!student.phone || !student.phone.startsWith("+")) {
-//       return res.status(400).json({ error: "Invalid student phone number. Must include country code like +91XXXXXXXXXX" });
+//     // ✅ Fix phone format
+//     let phoneToSend = student.phone?.toString().trim() || "";
+//     if (!phoneToSend) {
+//       return res
+//         .status(400)
+//         .json({ error: "Student does not have a phone number" });
 //     }
 
-//     // Send SMS via Twilio
+//     // Add +91 if missing
+//     const finalPhone = phoneToSend.startsWith("+")
+//       ? phoneToSend
+//       : `+91${phoneToSend}`;
+
+//     console.log("📞 Sending message to:", finalPhone);
+
 //     try {
-//       const twilioResponse = await client.messages.create({
+//       const result = await client.messages.create({
 //         body: message,
 //         from: process.env.TWILIO_PHONE_NUMBER,
-//         to: student.phone
+//         to: finalPhone,
 //       });
-//       console.log("Twilio message SID:", twilioResponse.sid);
+
+//       console.log("✅ Twilio message SID:", result.sid);
+
+//       const newMsg = {
+//         studentId,
+//         message,
+//         timestamp: new Date().toISOString(),
+//       };
+//       messages.push(newMsg);
+
+//       return res.json({
+//         success: true,
+//         sid: result.sid,
+//         msg: "Message sent successfully via Twilio",
+//       });
 //     } catch (twilioError) {
-//       console.error("Twilio Error:", twilioError);
-//       return res.status(500).json({ error: "Failed to send message via Twilio", details: twilioError.message });
+//       console.error("❌ Twilio Error:", twilioError);
+//       return res.status(500).json({
+//         success: false,
+//         msg: "Failed to send message via Twilio",
+//         error: twilioError.message,
+//       });
 //     }
-
-//     // Store in-memory for frontend
-//     const newMsg = {
-//       studentId,
-//       message,
-//       timestamp: new Date().toISOString(),
-//     };
-//     messages.push(newMsg);
-
-//     res.json({ success: true, message: "Message sent successfully via Twilio" });
 //   } catch (error) {
 //     console.error("Error sending message:", error);
-//     res.status(500).json({ error: "Internal Server Error" });
+//     res.status(500).json({
+//       success: false,
+//       msg: "Internal Server Error",
+//       error: error.message,
+//     });
 //   }
 // };
 
-// // Get messages for a student
+// /* ============================================================
+//    GET MESSAGES
+// ============================================================ */
 // export const getMessages = (req, res) => {
 //   try {
 //     const { id } = req.params;
-//     const studentMessages = messages.filter(msg => msg.studentId === id);
+//     const studentMessages = messages.filter((msg) => msg.studentId === id);
 //     res.json({ messages: studentMessages });
 //   } catch (error) {
 //     console.error("Error fetching messages:", error);
 //     res.status(500).json({ error: "Internal Server Error" });
 //   }
 // };
+
+
+
+
 
 
 import mongoose from "mongoose";
@@ -985,9 +1014,9 @@ const client = twilio(
 // In-memory storage for messages
 let messages = [];
 
-/* ============================================================
-   FETCH ALL STUDENTS
-============================================================ */
+// /* ============================================================
+//    FETCH ALL STUDENTS
+// ============================================================ */
 export const getAllStudents = async (req, res) => {
   try {
     const { branch, session } = req.query;
@@ -1011,9 +1040,9 @@ export const getAllStudents = async (req, res) => {
   }
 };
 
-/* ============================================================
-   FETCH SINGLE STUDENT BY ID
-============================================================ */
+// /* ============================================================
+//    FETCH SINGLE STUDENT BY ID
+// ============================================================ */
 export const getStudentById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -1113,9 +1142,9 @@ export const sendMessage = async (req, res) => {
   }
 };
 
-/* ============================================================
-   GET MESSAGES
-============================================================ */
+// /* ============================================================
+//    GET MESSAGES
+// ============================================================ */
 export const getMessages = (req, res) => {
   try {
     const { id } = req.params;

@@ -55,10 +55,11 @@
 //       </Routes>
 //     </Router>
 //   );
-// }
+
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
+import Students from "./pages/Students";
 import StudentDetails from "./pages/StudentDetails";
 
 export default function App() {
@@ -66,11 +67,13 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/students/:id/details" element={<StudentDetails />} />
-         {/* addded by navjot on 26-10 9:06 */}
-        
+        <Route path="/students" element={<Students />} />  {/* ✅ Added this line */}
         <Route path="/students/:id/details" element={<StudentDetails />} />
       </Routes>
     </Router>
   );
 }
+
+
+
+
